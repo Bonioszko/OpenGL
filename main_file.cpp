@@ -39,6 +39,7 @@ Place, Fifth Floor, Boston, MA  02110 - 1301  USA
 
 float speed_x = 0;
 float speed_y = 0;
+float speed_arrows = 0;
 float aspectRatio = 1;
 
 std::vector<glm::vec4> clockVerts;
@@ -65,6 +66,8 @@ std::vector<glm::vec4> bingBongVerts;
 std::vector<glm::vec4> bingBongNorms;
 std::vector<glm::vec2> bingBongTexCoords;
 std::vector<unsigned int> bingBongIndices;
+
+
 
 ShaderProgram* sp;
 GLuint texWood;
@@ -154,7 +157,7 @@ void loadModel(std::string plik) {
 			faceIndices.push_back(face.mIndices[j]);
 		}
 	}
-
+	std::cout << scene->mNumMeshes;
 
 	//arrow1
 	mesh = scene->mMeshes[0];
@@ -219,6 +222,11 @@ void loadModel(std::string plik) {
 			bingBongIndices.push_back(face.mIndices[j]);
 		}
 	}
+	//gear
+	
+
+
+
 }
 
 //Procedura obsługi błędów
@@ -232,12 +240,14 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (key == GLFW_KEY_RIGHT) speed_x = PI / 2;
 		if (key == GLFW_KEY_UP) speed_y = PI / 2;
 		if (key == GLFW_KEY_DOWN) speed_y = -PI / 2;
+		if (key == GLFW_KEY_D) speed_arrows = PI * 1.2;
 	}
 	if (action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT) speed_x = 0;
 		if (key == GLFW_KEY_RIGHT) speed_x = 0;
 		if (key == GLFW_KEY_UP) speed_y = 0;
 		if (key == GLFW_KEY_DOWN) speed_y = 0;
+		if (key == GLFW_KEY_D) speed_arrows = 0;
 	}
 }
 
@@ -260,7 +270,7 @@ void initOpenGLProgram(GLFWwindow* window) {
 	texWood = readTexture("wood.png");
 	texBingBong = readTexture("bingBong.png");
 
-	loadModel("clock.obj");
+	loadModel("with_cube.obj");
 }
 
 //Zwolnienie zasobów zajętych przez program
@@ -271,7 +281,7 @@ void freeOpenGLProgram(GLFWwindow* window) {
 
 
 //Procedura rysująca zawartość sceny
-void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
+void drawScene(GLFWwindow* window, float angle_x, float angle_y, float angle_arrows) {
 	//************Tutaj umieszczaj kod rysujący obraz******************l
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -281,6 +291,7 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 		glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz widoku
 
 	glm::mat4 P = glm::perspective(50.0f * PI / 180.0f, aspectRatio, 0.01f, 450.0f); //Wylicz macierz rzutowania
+	
 	//glm::mat4 P = glm::perspective(glm::radians(50.0f), 1.0f, 1.0f, 50.0f);
 	sp->use();//Aktywacja programu cieniującego
 	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
@@ -288,18 +299,23 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 
 	glm::mat4 M = glm::mat4(1.0f);
+	
 	M = glm::rotate(M, PI / 2, glm::vec3(0.0f, 1.0f, 0.0f));
 	M = glm::rotate(M, -PI / 2, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	M = glm::rotate(M, angle_y, glm::vec3(0.0f, 0.0f, 1.0f)); //Wylicz macierz modelu
 	M = glm::rotate(M, angle_x, glm::vec3(0.0f, 1.0f, 0.0f)); //Wylicz macierz modelu
-
+	glm::mat4 M_arrow_hours = M;
+	glm::mat4 M_arrow_minutes = M;
 
 	sp->use();//Aktywacja programu cieniującego
 	//Przeslij parametry programu cieniującego do karty graficznej
 	glUniformMatrix4fv(sp->u("P"), 1, false, glm::value_ptr(P));
 	glUniformMatrix4fv(sp->u("V"), 1, false, glm::value_ptr(V));
 	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M));
+
+
+
 
 
 	// CLOCK LOADING
@@ -365,6 +381,10 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 	glDisableVertexAttribArray(sp->a("texCoord0"));
 
 	// ARROW1 LOADING
+	M_arrow_hours = glm::translate(M_arrow_hours, glm::vec3(0.3f, 0.0f, 0.0f));
+	M_arrow_hours = glm::rotate(M_arrow_hours, angle_arrows, glm::vec3(0.0f, -1.0f, 0.0f)); //Wylicz macierz modelu
+	M_arrow_hours = glm::translate(M_arrow_hours, glm::vec3(-0.3f, 0.0f, 0.0f));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M_arrow_hours));
 	glEnableVertexAttribArray(sp->a("vertex"));
 	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, arrow1Verts.data());
 
@@ -378,6 +398,10 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 
 	// ARROW2 LOADING
+	M_arrow_minutes = glm::translate(M_arrow_minutes, glm::vec3(0.3f, 0.0f, 0.0f));
+	M_arrow_minutes = glm::rotate(M_arrow_minutes, angle_arrows/60, glm::vec3(0.0f, -1.0f, 0.0f)); //Wylicz macierz modelu
+	M_arrow_minutes = glm::translate(M_arrow_minutes, glm::vec3(-0.3f, 0.0f, 0.0f));
+	glUniformMatrix4fv(sp->u("M"), 1, false, glm::value_ptr(M_arrow_minutes));
 	glEnableVertexAttribArray(sp->a("vertex"));
 	glVertexAttribPointer(sp->a("vertex"), 4, GL_FLOAT, false, 0, arrow2Verts.data());
 
@@ -388,6 +412,8 @@ void drawScene(GLFWwindow* window, float angle_x, float angle_y) {
 
 	glDisableVertexAttribArray(sp->a("vertex"));  //Wyłącz przesyłanie danych do atrybutu vertex
 	glDisableVertexAttribArray(sp->a("normal"));  //Wyłącz przesyłanie danych do atrybutu vertex
+
+	
 
 
 
@@ -420,13 +446,18 @@ int main(void) {
 	//Główna pętla
 	float angle_x = 0; //Aktualny kąt obrotu obiektu
 	float angle_y = 0; //Aktualny kąt obrotu obiektu
+	float angle_arrow = 0; //Aktualny kąt obrotu obiektu
+	float angle_arrow_y = 0; //Aktualny kąt obrotu obiektu
 	glfwSetTime(0); //Zeruj timer
 	while (!glfwWindowShouldClose(window)) //Tak długo jak okno nie powinno zostać zamknięte
 	{
 		angle_x += speed_x * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
 		angle_y += speed_y * glfwGetTime(); //Zwiększ/zmniejsz kąt obrotu na podstawie prędkości i czasu jaki upłynał od poprzedniej klatki
+		angle_arrow += speed_arrows * glfwGetTime();
+		
+
 		glfwSetTime(0); //Zeruj timer
-		drawScene(window, angle_x, angle_y); //Wykonaj procedurę rysującą
+		drawScene(window, angle_x, angle_y,angle_arrow); //Wykonaj procedurę rysującą
 		glfwPollEvents(); //Wykonaj procedury callback w zalezności od zdarzeń jakie zaszły.
 	}
 

@@ -2,12 +2,12 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\kubab\Desktop\Zegar\bio_szkielet_08_win\x64\Debug\bio_szkielet_08_win.exe</FullPath>
+      <FullPath>C:\Users\barte\Desktop\grafika_projekt\Clock\x64\Debug\bio_szkielet_08_win.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles>
     <ContentFile>
-      <FullPath>C:\Users\kubab\Desktop\Zegar\bio_szkielet_08_win\wood.png</FullPath>
+      <FullPath>C:\Users\barte\Desktop\grafika_projekt\Clock\wood.png</FullPath>
     </ContentFile>
   </ContentFiles>
   <SatelliteDlls />
